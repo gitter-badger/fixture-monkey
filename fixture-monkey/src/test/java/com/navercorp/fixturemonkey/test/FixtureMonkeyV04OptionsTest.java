@@ -816,4 +816,57 @@ class FixtureMonkeyV04OptionsTest {
 
 		then(pair).isNotNull();
 	}
+
+	@Property
+	void registerEmptyListSize() {
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.register(
+				ComplexObject.class,
+				fixture -> fixture.giveMeBuilder(ComplexObject.class).set("strList", new ArrayList<>())
+			)
+			.build();
+
+		List<String> actual = sut.giveMeBuilder(ComplexObject.class)
+			.size("strList", 1)
+			.sample()
+			.getStrList();
+
+		then(actual).hasSize(1);
+	}
+
+	@Property
+	void registerReturnsDiff() {
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.register(
+				ComplexObject.class,
+				fixture -> fixture.giveMeBuilder(ComplexObject.class)
+			)
+			.build();
+
+		ComplexObject actual = sut.giveMeOne(ComplexObject.class);
+
+		ComplexObject notExpected = sut.giveMeOne(ComplexObject.class);
+		then(actual).isNotEqualTo(notExpected);
+	}
+
+	//
+	@Property
+	void registerTypeReferenceEmptyListSize() {
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.register(
+				ComplexObject.class,
+				fixture -> fixture.giveMeBuilder(ComplexObject.class).set("strList", new ArrayList<>())
+			)
+			.build();
+
+		List<String> actual = sut.giveMeBuilder(new TypeReference<List<ComplexObject>>() {
+			})
+			.size("$", 1)
+			.size("$[0].strList", 1)
+			.sample()
+			.get(0)
+			.getStrList();
+
+		then(actual).hasSize(1);
+	}
 }
