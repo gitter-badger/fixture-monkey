@@ -343,9 +343,9 @@ public class LabMonkeyBuilder {
 					};
 					this.register(actualType, registerArbitraryBuilder);
 				} catch (InvocationTargetException
-						 | InstantiationException
-						 | IllegalAccessException
-						 | NoSuchMethodException e) {
+						| InstantiationException
+						| IllegalAccessException
+						| NoSuchMethodException e) {
 					// ignored
 				}
 			}
@@ -414,6 +414,14 @@ public class LabMonkeyBuilder {
 	}
 
 	public LabMonkeyBuilder pushAssignableArbitraryIntrospector(Class<?> type, ArbitraryIntrospector introspector) {
+		generateOptionsBuilder.insertFirstArbitraryIntrospector(type, introspector);
+		return this;
+	}
+
+	public LabMonkeyBuilder pushArbitraryIntrospector(
+		Class<?> type,
+		ArbitraryIntrospector introspector
+	){
 		generateOptionsBuilder.insertFirstArbitraryIntrospector(type, introspector);
 		return this;
 	}
