@@ -66,6 +66,10 @@ public final class ArbitrarySetPostCondition<T> extends AbstractArbitraryExpress
 			|| this.clazz.isAssignableFrom(nodeClazz);
 	}
 
+	public Predicate<T> getFilter() {
+		return filter;
+	}
+
 	@Override
 	public ArbitrarySetPostCondition<T> copy() {
 		return new ArbitrarySetPostCondition<>(this.clazz, this.getArbitraryExpression(), this.filter, this.limit);

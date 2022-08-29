@@ -20,6 +20,7 @@ package com.navercorp.fixturemonkey.resolver;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,7 +38,7 @@ final class MetadataCollector {
 
 	public MetadataCollector(ArbitraryNode rootNode) {
 		this.rootNode = rootNode;
-		this.nodesByProperty = new HashMap<>();
+		this.nodesByProperty = new LinkedHashMap<>();
 	}
 
 	public ArbitraryTreeMetadata collect() {
@@ -48,17 +49,18 @@ final class MetadataCollector {
 	private void collect(ArbitraryNode node) {
 		Property property = node.getArbitraryProperty().getProperty();
 
+
+		List<ArbitraryNode> children = node.getChildren();
+		for (ArbitraryNode child : children) {
+			collect(child);
+		}
+
 		List<ArbitraryNode> list = Collections.singletonList(node);
 		nodesByProperty.merge(
 			property,
 			list,
 			(prev, now) -> Stream.concat(prev.stream(), now.stream()).collect(Collectors.toList())
 		);
-
-		List<ArbitraryNode> children = node.getChildren();
-		for (ArbitraryNode child : children) {
-			collect(child);
-		}
 	}
 
 }

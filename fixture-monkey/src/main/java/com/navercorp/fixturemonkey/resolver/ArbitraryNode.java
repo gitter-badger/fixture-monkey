@@ -42,7 +42,7 @@ final class ArbitraryNode {
 	private Arbitrary<?> arbitrary;
 
 	@SuppressWarnings("rawtypes")
-	private final List<Predicate> arbitraryFilters = new ArrayList<>();
+	private List<Predicate> arbitraryFilters;
 
 	ArbitraryNode(
 		ArbitraryProperty arbitraryProperty,
@@ -50,6 +50,7 @@ final class ArbitraryNode {
 	) {
 		this.arbitraryProperty = arbitraryProperty;
 		this.children = children;
+		this.arbitraryFilters = new ArrayList<>();
 	}
 
 	public void setArbitraryProperty(ArbitraryProperty arbitraryProperty) {
@@ -79,6 +80,10 @@ final class ArbitraryNode {
 
 	public void setArbitrary(@Nullable Arbitrary<?> arbitrary) {
 		this.arbitrary = arbitrary;
+	}
+
+	public void setArbitraryFilters(List<Predicate> filters){
+		this.arbitraryFilters = filters;
 	}
 
 	@SuppressWarnings("rawtypes")

@@ -18,6 +18,7 @@
 
 package com.navercorp.fixturemonkey.test;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDAssertions.thenNoException;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
@@ -42,12 +43,16 @@ import java.util.stream.Stream;
 
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
+import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
+import net.jqwik.api.domains.Domain;
 
 import com.navercorp.fixturemonkey.ArbitraryBuilder;
 import com.navercorp.fixturemonkey.ArbitraryBuilders;
 import com.navercorp.fixturemonkey.LabMonkey;
 import com.navercorp.fixturemonkey.api.type.TypeReference;
+import com.navercorp.fixturemonkey.customizer.ExpressionSpec;
+import com.navercorp.fixturemonkey.resolver.OldManipulatorOptimizer;
 import com.navercorp.fixturemonkey.test.ComplexManipulatorTestSpecs.IntValue;
 import com.navercorp.fixturemonkey.test.ComplexManipulatorTestSpecs.NestedStringList;
 import com.navercorp.fixturemonkey.test.ComplexManipulatorTestSpecs.StringAndInt;
@@ -55,10 +60,18 @@ import com.navercorp.fixturemonkey.test.ComplexManipulatorTestSpecs.StringValue;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.ComplexObject;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.ListWithAnnotation;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.SimpleObject;
+import com.navercorp.fixturemonkey.test.SimpleManipulatorTestSpecs.IntegerList;
+import com.navercorp.fixturemonkey.test.SimpleManipulatorTestSpecs.ListListString;
+import com.navercorp.fixturemonkey.test.SimpleManipulatorTestSpecs.MapKeyIntegerValueInteger;
+import com.navercorp.fixturemonkey.test.SimpleManipulatorTestSpecs.NestedStringValueList;
+import com.navercorp.fixturemonkey.test.SimpleManipulatorTestSpecs.StringList;
+import com.navercorp.fixturemonkey.test.SimpleManipulatorTestSpecs.TwoString;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.StringPair;
 
 class FixtureMonkeyV04Test {
-	private static final LabMonkey SUT = LabMonkey.labMonkey();
+	private static final LabMonkey SUT = LabMonkey.labMonkeyBuilder()
+		.manipulatorOptimizer(new OldManipulatorOptimizer())
+		.build();
 
 	@Property
 	void sampleWithType() {
@@ -1205,5 +1218,747 @@ class FixtureMonkeyV04Test {
 			.getStrStream();
 
 		then(actual.collect(Collectors.toList()).get(0)).isEqualTo(expected);
+	}
+
+	@Property
+	void giveMeSpecSet() {
+		// when
+		SimpleManipulatorTestSpecs.IntValue actual = SUT.giveMeBuilder(SimpleManipulatorTestSpecs.IntValue.class)
+			.spec(new ExpressionSpec().set("value", -1))
+			.sample();
+
+		then(actual.getValue()).isEqualTo(-1);
+	}
+
+	@Property
+	void giveMeSpecSetArbitrary() {
+		// when
+		SimpleManipulatorTestSpecs.IntValue actual = SUT.giveMeBuilder(SimpleManipulatorTestSpecs.IntValue.class)
+			.spec(new ExpressionSpec().set("value", Arbitraries.just(1)))
+			.sample();
+
+		then(actual.getValue()).isEqualTo(1);
+	}
+
+	@Property
+	void giveMeListSize() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec().size("values", 1, 1))
+			.sample();
+
+		then(actual.getValues()).hasSize(1);
+	}
+
+	@Property
+	void giveMeSetNull() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec().setNull("values"))
+			.sample();
+
+		then(actual.getValues()).isNull();
+	}
+
+	@Property
+	void giveMeSizeAfterSetNullReturnsNull() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec()
+				.setNull("values")
+				.size("values", 1, 1)
+			)
+			.sample();
+
+		then(actual.getValues()).isNull();
+	}
+
+	@Property
+	void giveMeSetAfterSetNullReturnsNotNull() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec()
+				.setNull("values")
+				.size("values", 1, 1)
+				.set("values[0]", 0)
+			)
+			.sample();
+
+		then(actual.getValues()).isNotNull();
+		then(actual.getValues()).hasSize(1);
+		then(actual.getValues().get(0)).isEqualTo(0);
+	}
+
+	@Property
+	void giveMeSetNotNullAfterSetNullReturnsNotNull() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec()
+				.setNull("values")
+				.setNotNull("values")
+			)
+			.sample();
+
+		then(actual.getValues()).isNotNull();
+	}
+
+	@Property
+	void giveMeSetNullAfterSetNotNullReturnsNull() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec()
+				.setNotNull("values")
+				.setNull("values")
+			)
+			.sample();
+
+		then(actual.getValues()).isNull();
+	}
+
+	@Property
+	void giveMeSetNullAfterSetReturnsNull() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec()
+				.size("values", 1, 1)
+				.set("values[0]", 0)
+				.setNull("values")
+			)
+			.sample();
+
+		then(actual.getValues()).isNull();
+	}
+
+	@Property
+	void giveMeSpecPostCondition() {
+		// when
+		SimpleManipulatorTestSpecs.IntValue actual = SUT.giveMeBuilder(SimpleManipulatorTestSpecs.IntValue.class)
+			.spec(new ExpressionSpec().setPostCondition(
+				"value",
+				Integer.class,
+				value -> value >= 0 && value <= 100
+			))
+			.sample();
+
+		then(actual.getValue()).isBetween(0, 100);
+	}
+
+	@Property
+	void giveMeSpecPostConditionType() {
+		// when
+		SimpleManipulatorTestSpecs.IntValue actual = SUT.giveMeBuilder(SimpleManipulatorTestSpecs.IntValue.class)
+			.spec(new ExpressionSpec().setPostCondition(
+				"value",
+				Integer.class,
+				value -> value >= 0 && value <= 100
+			))
+			.sample();
+
+		then(actual.getValue()).isBetween(0, 100);
+	}
+
+	@Property
+	void giveMePostConditionIndex() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec()
+				.setPostCondition("values[0]", Integer.class, value -> value >= 0 && value <= 100)
+				.size("values", 1, 1)
+			)
+			.sample();
+
+		then(actual.getValues()).hasSize(1);
+		then(actual.getValues().get(0)).isBetween(0, 100);
+	}
+
+	@Property
+	@Domain(SimpleManipulatorTestSpecs.class)
+	void giveMeObjectToBuilderSet(@ForAll SimpleManipulatorTestSpecs.IntValue expected) {
+		SimpleManipulatorTestSpecs.IntValue actual = SUT.giveMeBuilder(expected)
+			.set("value", 1)
+			.sample();
+
+		then(actual.getValue()).isEqualTo(1);
+	}
+
+	@Property
+	@Domain(SimpleManipulatorTestSpecs.class)
+	void giveMeObjectToBuilderSetWithExpressionGenerator(@ForAll SimpleManipulatorTestSpecs.IntValue expected) {
+		SimpleManipulatorTestSpecs.IntValue actual = SUT.giveMeBuilder(expected)
+			.set((resolver) -> "value", 1)
+			.sample();
+
+		then(actual.getValue()).isEqualTo(1);
+	}
+
+	@Property
+	void giveMeObjectToBuilderSetIndex() {
+		// given
+		IntegerList expected = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec().size("values", 2, 2))
+			.sample();
+
+		// when
+		IntegerList actual = SUT.giveMeBuilder(expected)
+			.set("values[1]", 1)
+			.sample();
+
+		then(actual.getValues().get(1)).isEqualTo(1);
+	}
+
+	@Property
+	void giveMeListSpecMaxSize() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.spec(new ExpressionSpec()
+				.list("values",
+					it -> it.ofMaxSize(2)
+				)
+			)
+			.sample();
+
+		then(actual.getValues().size()).isLessThanOrEqualTo(2);
+	}
+
+	@Property
+	void giveMeListSpecSizeBetween() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.spec(new ExpressionSpec()
+				.list("values",
+					it -> it.ofSizeBetween(1, 3)
+				)
+			)
+			.sample();
+
+		then(actual.getValues().size()).isBetween(1, 3);
+	}
+
+	@Property
+	void giveMeSetAllName() {
+		// when
+		TwoString actual = SUT.giveMeBuilder(TwoString.class)
+			.set("*", "set")
+			.sample();
+
+		then(actual.getValue1()).isEqualTo("set");
+		then(actual.getValue2()).isEqualTo("set");
+	}
+
+	@Property
+	void giveMeListExactSize() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.size("values", 3)
+			.sample();
+
+		then(actual.getValues().size()).isEqualTo(3);
+	}
+
+	@Property
+	void giveMeListExactSizeWithExpressionGenerator() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.size((resolver) -> "values", 3)
+			.sample();
+
+		then(actual.getValues().size()).isEqualTo(3);
+	}
+
+	@Property
+	void giveMeSizeMap() {
+		// when
+		MapKeyIntegerValueInteger actual = SUT.giveMeBuilder(MapKeyIntegerValueInteger.class)
+			.size("values", 2, 2)
+			.sample();
+
+		then(actual.getValues()).hasSize(2);
+	}
+
+	@Property
+	void giveMeSizeMapWithExpressionGenerator() {
+		// when
+		MapKeyIntegerValueInteger actual = SUT.giveMeBuilder(MapKeyIntegerValueInteger.class)
+			.size((resolver) -> "values", 2, 2)
+			.sample();
+
+		then(actual.getValues()).hasSize(2);
+	}
+
+	@Property
+	void giveMeSetRightOrder() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.spec(new ExpressionSpec()
+				.list("values",
+					it -> it
+						.ofSize(3)
+						.setElement(0, "field1")
+						.setElement(1, "field2")
+						.setElement(2, "field3")
+				)
+			)
+			.sample();
+
+		// then
+		List<String> values = actual.getValues();
+		then(values.size()).isEqualTo(3);
+		then(values.get(0)).isEqualTo("field1");
+		then(values.get(1)).isEqualTo("field2");
+		then(values.get(2)).isEqualTo("field3");
+	}
+
+	@Property
+	void giveMePostConditionRightOrder() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.spec(new ExpressionSpec()
+				.list("values",
+					(it) -> it.ofSize(2)
+						.setElementPostCondition(0, String.class, s -> s.length() > 5)
+						.setElementPostCondition(1, String.class, s -> s.length() > 10)
+				))
+			.sample();
+
+		// then
+		List<String> values = actual.getValues();
+		then(values.size()).isEqualTo(2);
+		then(values.get(0).length()).isGreaterThan(5);
+		then(values.get(1).length()).isGreaterThan(10);
+	}
+
+	@Property
+	void giveMeListSpecMinSize() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.spec(new ExpressionSpec()
+				.list("values",
+					it -> it.ofMinSize(1)
+				)
+			)
+			.sample();
+
+		then(actual.getValues().size()).isGreaterThanOrEqualTo(1);
+	}
+
+	@Property
+	void giveMeSpecAny() {
+		// given
+		ExpressionSpec specOne = new ExpressionSpec()
+			.list("values", it -> it
+				.ofSize(1)
+				.setElement(0, 1)
+			);
+		ExpressionSpec specTwo = new ExpressionSpec()
+			.list("values", it -> it
+				.ofSize(2)
+				.setElement(0, 1)
+				.setElement(1, 2)
+			);
+
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.specAny(specOne, specTwo)
+			.sample();
+
+		// then
+		IntegerList expectedOne = new IntegerList();
+		expectedOne.setValues(new ArrayList<>());
+		expectedOne.getValues().add(1);
+
+		IntegerList expectedTwo = new IntegerList();
+		expectedTwo.setValues(new ArrayList<>());
+		expectedTwo.getValues().add(1);
+		expectedTwo.getValues().add(2);
+
+		then(actual).isIn(expectedOne, expectedTwo);
+	}
+
+	@Property
+	void giveMeSpecAnyWithEmpty() {
+		thenNoException().isThrownBy(
+			() -> SUT.giveMeBuilder(StringList.class)
+				.specAny()
+				.sample()
+		);
+	}
+
+	@Property
+	void giveMeSpecAnyWithNull() {
+		thenNoException().isThrownBy(
+			() -> SUT.giveMeBuilder(StringList.class)
+				.specAny((ExpressionSpec[])null)
+				.sample()
+		);
+	}
+
+	@Property(tries = 2)
+	void giveMeSpecAnyReturnsDiff() {
+		// given
+		Arbitrary<ComplexManipulatorTestSpecs.StringValue> complex = ComplexManipulatorTestSpecs.SUT.giveMeBuilder(
+				ComplexManipulatorTestSpecs.StringValue.class)
+			.specAny(
+				new ExpressionSpec().set("value", "test1"),
+				new ExpressionSpec().set("value", "test2"),
+				new ExpressionSpec().set("value", "test3"),
+				new ExpressionSpec().set("value", "test4"),
+				new ExpressionSpec().set("value", "test5"),
+				new ExpressionSpec().set("value", "test6"),
+				new ExpressionSpec().set("value", "test7"),
+				new ExpressionSpec().set("value", "test8"),
+				new ExpressionSpec().set("value", "test9"),
+				new ExpressionSpec().set("value", "test10")
+			)
+			.build();
+
+		// when
+		List<ComplexManipulatorTestSpecs.StringValue> sampled = complex.list().ofSize(100).sample();
+
+		// then
+		List<ComplexManipulatorTestSpecs.StringValue> distinct = sampled.stream().distinct().collect(toList());
+		then(distinct.size()).isNotEqualTo(sampled.size());
+	}
+
+	@Property
+	void giveMeSpecAnyFirstWithMetadataManipulatorReturnsGivenOrder() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.specAny(new ExpressionSpec().size("values", 2))
+			.size("values", 1)
+			.sample();
+
+		then(actual.getValues()).hasSize(1);
+	}
+
+	@Property
+	void giveMeSpecAnyLastWithMetadataManipulatorReturnsGivenOrder() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.size("values", 1)
+			.specAny(new ExpressionSpec().size("values", 2))
+			.sample();
+
+		then(actual.getValues()).hasSize(2);
+	}
+
+	@Property
+	void giveMeBuilderSetNull() {
+		// when
+		SimpleManipulatorTestSpecs.StringValue actual = SUT.giveMeBuilder(SimpleManipulatorTestSpecs.StringValue.class)
+			.set("value", null)
+			.sample();
+
+		then(actual.getValue()).isNull();
+	}
+
+	@Property
+	void giveMeMinSize() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.minSize("values", 2)
+			.sample();
+
+		then(actual.getValues().size()).isGreaterThanOrEqualTo(2);
+	}
+
+	@Property
+	void giveMeMinSizeWithExpressionGenerator() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.minSize((resolver) -> "values", 2)
+			.sample();
+
+		then(actual.getValues().size()).isGreaterThanOrEqualTo(2);
+	}
+
+	@Property
+	void giveMeMaxSize() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.maxSize("values", 10)
+			.sample();
+
+		then(actual.getValues().size()).isLessThanOrEqualTo(10);
+	}
+
+	@Property
+	void giveMeMaxSizeWithExpressionGenerator() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.maxSize((resolver) -> "values", 10)
+			.sample();
+
+		then(actual.getValues().size()).isLessThanOrEqualTo(10);
+	}
+
+	@Property(tries = 10)
+	void giveMeSizeMinMaxBiggerThanDefault() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.size("values", 100, 150)
+			.sample();
+
+		then(actual.getValues().size()).isBetween(100, 150);
+	}
+
+	@Property(tries = 10)
+	void giveMeSizeMinBiggerThanDefaultMax() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.minSize("values", 100)
+			.sample();
+
+		then(actual.getValues().size()).isBetween(100, 110);
+	}
+
+	@Property
+	void giveMeSizeMaxSizeIsZero() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.maxSize("values", 0)
+			.sample();
+
+		then(actual.getValues()).isEmpty();
+	}
+
+	@Property
+	void giveMeSizeMaxSizeBeforeMinSizeThenMinSizeWorks() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.maxSize("values", 15)
+			.minSize("values", 14)
+			.sample();
+
+		then(actual.getValues()).hasSizeGreaterThanOrEqualTo(14);
+	}
+
+	@Property
+	void giveMeSizeMinSizeBeforeMaxSizeThenMaxSizeWorks() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.minSize("values", 14)
+			.maxSize("values", 15)
+			.sample();
+
+		then(actual.getValues()).hasSizeLessThanOrEqualTo(15);
+	}
+
+	@Property
+	void giveMePostConditionLimitIndex() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.size("values", 2, 2)
+			.setPostCondition("values[*]", String.class, it -> it.length() > 0)
+			.setPostCondition("values[*]", String.class, it -> it.length() > 5, 1)
+			.sample();
+
+		then(actual.getValues()).anyMatch(it -> it.length() > 5);
+	}
+
+	@Property
+	void giveMePostConditionLimitIndexWithExpressionGenerator() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.size("values", 2, 2)
+			.setPostCondition((resolver) -> "values[*]", String.class, it -> it.length() > 0)
+			.setPostCondition((resolver) -> "values[*]", String.class, it -> it.length() > 5, 1)
+			.sample();
+
+		then(actual.getValues()).anyMatch(it -> it.length() > 5);
+	}
+
+	@Property
+	void giveMePostConditionLimitIndexNotOverwriteIfLimitIsZeroReturnsNotPostCondition() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.setPostCondition("values[*]", String.class, it -> it.length() > 5)
+			.setPostCondition("values[*]", String.class, it -> it.length() == 0, 0)
+			.sample();
+
+		then(actual.getValues()).allMatch(it -> it.length() > 5);
+	}
+
+	@Property
+	void giveMeSpecListSetSize() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec().list("values", it -> it.ofSize(1)))
+			.sample();
+
+		then(actual.getValues()).hasSize(1);
+	}
+
+	@Property
+	void giveMeSpecListSetElement() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec().list("values", it -> {
+				it.ofSize(1);
+				it.setElement(0, 1);
+			}))
+			.sample();
+
+		then(actual.getValues()).hasSize(1);
+		then(actual.getValues().get(0)).isEqualTo(1);
+	}
+
+	@Property
+	void giveMeSpecListAnySet() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec().list("values", it -> {
+				it.ofSize(3);
+				it.any(1);
+			}))
+			.sample();
+
+		then(actual.getValues()).anyMatch(it -> it == 1);
+	}
+
+	@Property
+	void giveMeSpecListAnyWithoutSize() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.spec(new ExpressionSpec().list("values", it -> it.any("set")))
+			.sample();
+
+		then(actual.getValues()).anyMatch(it -> it.equals("set"));
+	}
+
+	@Property
+	void giveMeSpecListAnyWithoutMaxSize() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.spec(new ExpressionSpec().list("values", it -> {
+				it.ofMinSize(5);
+				it.any("set");
+			}))
+			.sample();
+
+		then(actual.getValues()).anyMatch(it -> it.equals("set"));
+	}
+
+	@Property
+	void giveMeSpecListAnyWithoutMinSize() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.spec(new ExpressionSpec().list("values", it -> {
+				it.ofMaxSize(2);
+				it.any("set");
+			}))
+			.sample();
+
+		then(actual.getValues()).anyMatch(it -> it.equals("set"));
+	}
+
+	@Property
+	void giveMeSpecListAllSet() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec().list("values", it -> {
+				it.ofSize(3);
+				it.all(1);
+			}))
+			.sample();
+
+		then(actual.getValues()).allMatch(it -> it == 1);
+	}
+
+	@Property
+	void giveMeSpecListPostConditionElement() {
+		// when
+		IntegerList actual = SUT.giveMeBuilder(IntegerList.class)
+			.spec(new ExpressionSpec().list("values", it -> {
+				it.ofSize(1);
+				it.setElementPostCondition(0, Integer.class, postConditioned -> postConditioned > 1);
+			}))
+			.sample();
+
+		then(actual.getValues()).hasSize(1);
+		then(actual.getValues().get(0)).isGreaterThan(1);
+	}
+
+	@Property
+	void giveMeSpecListPostConditionElementField() {
+		// when
+		NestedStringValueList actual = SUT.giveMeBuilder(NestedStringValueList.class)
+			.spec(new ExpressionSpec().list("values", it -> {
+				it.ofSize(1);
+				it.setElementFieldPostCondition(0, "value", String.class,
+					postConditioned -> postConditioned.length() > 5);
+			}))
+			.sample();
+
+		then(actual.getValues()).allMatch(it -> it.getValue().length() > 5);
+	}
+
+	@Property
+	void giveMeSpecListListElementSet() {
+		// when
+		ListListString actual = SUT.giveMeBuilder(ListListString.class)
+			.spec(new ExpressionSpec().list("values", it -> {
+				it.ofSize(1);
+				it.listElement(0, nestedIt -> {
+					nestedIt.ofSize(1);
+					nestedIt.setElement(0, "set");
+				});
+			}))
+			.sample();
+
+		then(actual.getValues()).hasSize(1);
+		then(actual.getValues().get(0)).hasSize(1);
+		then(actual.getValues().get(0).get(0)).isEqualTo("set");
+	}
+
+	@Property
+	void giveMeSpecListListElementPostCondition() {
+		// when
+		ListListString actual = SUT.giveMeBuilder(ListListString.class)
+			.spec(new ExpressionSpec().list("values", it -> {
+				it.ofSize(1);
+				it.listElement(0, nestedIt -> {
+					nestedIt.ofSize(1);
+					nestedIt.setElementPostCondition(0, String.class, postConditioned -> postConditioned.length() > 5);
+				});
+			}))
+			.sample();
+
+		then(actual.getValues()).hasSize(1);
+		then(actual.getValues().get(0)).hasSize(1);
+		then(actual.getValues().get(0).get(0).length()).isGreaterThan(5);
+	}
+
+	@Property
+	void giveMeSetLimitReturnsNotSet() {
+		// when
+		SimpleManipulatorTestSpecs.IntValue actual = SUT.giveMeBuilder(SimpleManipulatorTestSpecs.IntValue.class)
+			.set("value", 1, 0)
+			.sample();
+
+		then(actual.getValue()).isBetween(Integer.MIN_VALUE, Integer.MAX_VALUE);
+	}
+
+	@Property
+	void giveMeSpecSetWithLimit() {
+		// when
+		SimpleManipulatorTestSpecs.IntValue actual = SUT.giveMeBuilder(SimpleManipulatorTestSpecs.IntValue.class)
+			.spec(new ExpressionSpec()
+				.set("value", 1, 0))
+			.sample();
+
+		then(actual.getValue()).isBetween(Integer.MIN_VALUE, Integer.MAX_VALUE);
+	}
+
+	@Property
+	void giveMeSpecSetIndexWithLimitReturns() {
+		// when
+		StringList actual = SUT.giveMeBuilder(StringList.class)
+			.size("values", 2)
+			.spec(new ExpressionSpec()
+				.set("values[*]", "set"))
+			.size("values", 3)
+			.sample();
+
+		then(actual.getValues()).anyMatch(it -> !it.equals("set"));
 	}
 }

@@ -151,6 +151,11 @@ final class DefaultIterableSpec implements IterableSpec, ExpressionSpecVisitor {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void visit(ExpressionSpec expressionSpec) {
+		if (this.minSize != null || this.maxSize != null) {
+			this.minSize = this.minSize == null ? DEFAULT_ELEMENT_MIN_SIZE : this.minSize;
+			this.maxSize = this.maxSize == null ? DEFAULT_ELEMENT_MAX_SIZE : this.maxSize;
+			expressionSpec.size(this.iterableName, this.minSize, this.maxSize);
+		}
 		this.setList.forEach(it -> expressionSpec.set(it.expression, it.value, it.limit));
 		this.postConditionList.forEach(
 			it -> expressionSpec.setPostCondition(it.expression, it.clazz, it.postCondition, it.limit));
@@ -161,12 +166,6 @@ final class DefaultIterableSpec implements IterableSpec, ExpressionSpecVisitor {
 
 		if (this.notNull) {
 			expressionSpec.setNotNull(this.iterableName);
-		}
-
-		if (this.minSize != null || this.maxSize != null) {
-			this.minSize = this.minSize == null ? DEFAULT_ELEMENT_MIN_SIZE : this.minSize;
-			this.maxSize = this.maxSize == null ? DEFAULT_ELEMENT_MAX_SIZE : this.maxSize;
-			expressionSpec.size(this.iterableName, this.minSize, this.maxSize);
 		}
 	}
 

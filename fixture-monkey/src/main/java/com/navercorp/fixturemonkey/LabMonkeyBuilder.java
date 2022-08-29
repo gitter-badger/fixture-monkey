@@ -52,6 +52,7 @@ import com.navercorp.fixturemonkey.api.matcher.Matcher;
 import com.navercorp.fixturemonkey.api.matcher.MatcherOperator;
 import com.navercorp.fixturemonkey.api.option.GenerateOptions;
 import com.navercorp.fixturemonkey.api.option.GenerateOptionsBuilder;
+import com.navercorp.fixturemonkey.api.plugin.Plugin;
 import com.navercorp.fixturemonkey.api.property.PropertyNameResolver;
 import com.navercorp.fixturemonkey.api.type.Types;
 import com.navercorp.fixturemonkey.expression.MonkeyExpressionFactory;
@@ -313,6 +314,11 @@ public class LabMonkeyBuilder {
 		return this;
 	}
 
+	public LabMonkeyBuilder objectIntrospector(ArbitraryIntrospector introspector){
+		this.generateOptionsBuilder.objectIntrospector(it -> introspector);
+		return this;
+	}
+
 	public LabMonkeyBuilder registerGroup(Class<?>... arbitraryBuilderGroups) {
 		for (Class<?> arbitraryBuilderGroup : arbitraryBuilderGroups) {
 			Method[] methods = arbitraryBuilderGroup.getMethods();
@@ -337,9 +343,9 @@ public class LabMonkeyBuilder {
 					};
 					this.register(actualType, registerArbitraryBuilder);
 				} catch (InvocationTargetException
-						| InstantiationException
-						| IllegalAccessException
-						| NoSuchMethodException e) {
+						 | InstantiationException
+						 | IllegalAccessException
+						 | NoSuchMethodException e) {
 					// ignored
 				}
 			}
@@ -399,6 +405,16 @@ public class LabMonkeyBuilder {
 		this.pushAssignableTypeArbitraryPropertyGenerator(type, containerArbitraryPropertyGenerator);
 		this.pushContainerIntrospector(containerArbitraryIntrospector);
 		decomposableContainerFactoryMap.put(type, decomposedContainerValueFactory);
+		return this;
+	}
+
+	public LabMonkeyBuilder plugin(Plugin plugin) {
+		generateOptionsBuilder.plugin(plugin);
+		return this;
+	}
+
+	public LabMonkeyBuilder pushAssignableArbitraryIntrospector(Class<?> type, ArbitraryIntrospector introspector) {
+		generateOptionsBuilder.insertFirstArbitraryIntrospector(type, introspector);
 		return this;
 	}
 

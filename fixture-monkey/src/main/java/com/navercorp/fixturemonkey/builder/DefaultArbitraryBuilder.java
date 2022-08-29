@@ -54,12 +54,14 @@ import com.navercorp.fixturemonkey.api.property.PropertyNameResolver;
 import com.navercorp.fixturemonkey.api.property.RootProperty;
 import com.navercorp.fixturemonkey.api.type.LazyAnnotatedType;
 import com.navercorp.fixturemonkey.api.type.Types;
+import com.navercorp.fixturemonkey.customizer.ExpressionSpec;
 import com.navercorp.fixturemonkey.customizer.InnerSpec;
 import com.navercorp.fixturemonkey.expression.MonkeyExpressionFactory;
 import com.navercorp.fixturemonkey.resolver.ApplyNodeCountManipulator;
 import com.navercorp.fixturemonkey.resolver.ArbitraryManipulator;
 import com.navercorp.fixturemonkey.resolver.ArbitraryResolver;
 import com.navercorp.fixturemonkey.resolver.ArbitraryTraverser;
+import com.navercorp.fixturemonkey.resolver.BuilderManipulatorAdapter;
 import com.navercorp.fixturemonkey.resolver.ManipulateOptions;
 import com.navercorp.fixturemonkey.resolver.NodeFilterManipulator;
 import com.navercorp.fixturemonkey.resolver.NodeNullityManipulator;
@@ -135,6 +137,17 @@ public final class DefaultArbitraryBuilder<T> extends OldArbitraryBuilderImpl<T>
 				)
 			);
 		}
+		return this;
+	}
+
+	@Override
+	public ArbitraryBuilder<T> spec(ExpressionSpec expressionSpec) {
+		BuilderManipulatorAdapter adapter = new BuilderManipulatorAdapter(traverser, manipulateOptions);
+		this.manipulators.addAll(
+			expressionSpec.getBuilderManipulators().stream()
+				.map(adapter::convert)
+				.collect(toList())
+		);
 		return this;
 	}
 

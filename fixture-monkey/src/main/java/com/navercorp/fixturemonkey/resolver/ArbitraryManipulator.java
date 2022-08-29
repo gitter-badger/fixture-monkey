@@ -24,4 +24,8 @@ public final class ArbitraryManipulator {
 			nodeManipulator.manipulate(node);
 		}
 	}
+
+	public NodeManipulator getNodeManipulator() {
+		return nodeManipulator;
+	}
 }
