@@ -59,8 +59,15 @@ public final class ArbitraryResolver {
 	public Arbitrary<?> resolve(RootProperty rootProperty, List<ArbitraryManipulator> manipulators) {
 		ArbitraryTree arbitraryTree = new ArbitraryTree(
 			this.traverser.traverse(rootProperty, null),
-			generateOptions
+			generateOptions,
+			generateOptions.getArbitraryCustomizers()
 		);
+
+		List<ArbitraryManipulator> sizeManipulator = manipulators.stream()
+			.filter(it -> it.getNodeManipulator() instanceof NodeSizeManipulator)
+			.collect(Collectors.toList());
+
+		sizeManipulator.forEach(it -> it.manipulate(arbitraryTree));
 
 		List<ArbitraryManipulator> registeredManipulators = getRegisteredToManipulators(
 			manipulateOptions,
@@ -69,6 +76,7 @@ public final class ArbitraryResolver {
 
 		List<ArbitraryManipulator> joinedManipulators =
 			Stream.concat(registeredManipulators.stream(), manipulators.stream())
+				.filter(it -> !(it.getNodeManipulator() instanceof NodeSizeManipulator))
 				.collect(Collectors.toList());
 
 		List<ArbitraryManipulator> optimizedManipulator = manipulatorOptimizer

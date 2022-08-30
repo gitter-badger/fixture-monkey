@@ -102,7 +102,7 @@ public final class GenerateOptions {
 	private final ArbitraryGenerator defaultArbitraryGenerator;
 
 	@SuppressWarnings("rawtypes")
-	private final List<MatcherOperator<FixtureCustomizer>> arbitraryCustomizers;
+	private final List<MatcherOperator<? extends FixtureCustomizer>> arbitraryCustomizers;
 
 	@SuppressWarnings("rawtypes")
 	public GenerateOptions(
@@ -117,7 +117,7 @@ public final class GenerateOptions {
 		ArbitraryContainerInfo defaultArbitraryContainerInfo,
 		List<MatcherOperator<ArbitraryGenerator>> arbitraryGenerators,
 		ArbitraryGenerator defaultArbitraryGenerator,
-		List<MatcherOperator<FixtureCustomizer>> arbitraryCustomizers
+		List<MatcherOperator<? extends FixtureCustomizer>> arbitraryCustomizers
 	) {
 		this.arbitraryPropertyGenerators = arbitraryPropertyGenerators;
 		this.defaultArbitraryPropertyGenerator = defaultArbitraryPropertyGenerator;
@@ -222,7 +222,7 @@ public final class GenerateOptions {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public List<MatcherOperator<FixtureCustomizer>> getArbitraryCustomizers() {
+	public List<MatcherOperator<? extends FixtureCustomizer>> getArbitraryCustomizers() {
 		return arbitraryCustomizers;
 	}
 

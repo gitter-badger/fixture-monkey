@@ -68,6 +68,8 @@ import com.navercorp.fixturemonkey.test.FixtureMonkeyV04OptionsAdditionalTestSpe
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04OptionsAdditionalTestSpecs.RegisterGroup;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04OptionsAdditionalTestSpecs.SimpleObjectChild;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.ComplexObject;
+import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.ListListValue;
+import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.ListWithAnnotation;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.SimpleObject;
 
 class FixtureMonkeyV04OptionsTest {
@@ -295,6 +297,65 @@ class FixtureMonkeyV04OptionsTest {
 			.getStr();
 
 		then(actual).isEqualTo(expected);
+	}
+
+	@Property
+	void pushAssignableTypeArbitraryIntrospector() {
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.pushAssignableTypeArbitraryIntrospector(
+				SimpleObject.class,
+				(context) -> new ArbitraryIntrospectorResult(null)
+			)
+			.build();
+
+		SimpleObjectChild actual = sut.giveMeOne(SimpleObjectChild.class);
+
+		then(actual).isNull();
+	}
+
+	@Property
+	void pushExactTypeArbitraryIntrospector() {
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.pushExactTypeArbitraryIntrospector(
+				SimpleObjectChild.class,
+				(context) -> new ArbitraryIntrospectorResult(null)
+			)
+			.build();
+
+		SimpleObjectChild actual = sut.giveMeOne(SimpleObjectChild.class);
+
+		then(actual).isNull();
+	}
+
+	@Property
+	void pushArbitraryIntrospector() {
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.pushArbitraryIntrospector(
+				MatcherOperator.exactTypeMatchOperator(
+					SimpleObjectChild.class,
+					(context) -> new ArbitraryIntrospectorResult(null)
+				)
+			)
+			.build();
+
+		SimpleObjectChild actual = sut.giveMeOne(SimpleObjectChild.class);
+
+		then(actual).isNull();
+	}
+
+	@Property
+	void objectIntrospector() {
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.objectIntrospector(
+				(context) -> new ArbitraryIntrospectorResult(Arbitraries.just(null))
+			)
+			.build();
+
+		SimpleObject simpleObject = sut.giveMeOne(SimpleObject.class);
+		ComplexObject complexObject = sut.giveMeOne(ComplexObject.class);
+
+		then(simpleObject).isNull();
+		then(complexObject).isNull();
 	}
 
 	@Property
@@ -868,5 +929,39 @@ class FixtureMonkeyV04OptionsTest {
 			.getStrList();
 
 		then(actual).hasSize(1);
+	}
+
+	@Property
+	void sizeRegisteredElement() {
+		String expected = "test";
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.register(String.class, fixture -> fixture.giveMeBuilder(String.class).set(expected))
+			.build();
+
+		List<String> actual = sut.giveMeBuilder(ListWithAnnotation.class)
+			.size("values", 5)
+			.sample()
+			.getValues();
+
+		then(actual).allMatch(expected::equals);
+	}
+
+	@Property
+	void sizeRegisteredElementElement() {
+		String expected = "test";
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.register(
+				ListWithAnnotation.class,
+				fixture -> fixture.giveMeBuilder(ListWithAnnotation.class).size("values", 3)
+			)
+			.register(String.class, fixture -> fixture.giveMeBuilder(String.class).set(expected))
+			.build();
+
+		List<ListWithAnnotation> actual = sut.giveMeBuilder(ListListValue.class)
+			.size("values", 5)
+			.sample()
+			.getValues();
+
+		then(actual).allMatch(it -> it.getValues().stream().allMatch(expected::equals));
 	}
 }

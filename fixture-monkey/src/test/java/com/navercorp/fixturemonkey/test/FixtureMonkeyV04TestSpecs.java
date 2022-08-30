@@ -95,4 +95,17 @@ class FixtureMonkeyV04TestSpecs {
 		@NotEmpty
 		private List<@NotBlank String> values;
 	}
+
+	@Getter
+	@Setter
+	public static class ListListValue {
+		private List<ListWithAnnotation> values;
+
+	}
+
+	public enum EnumObject {
+		ONE,
+		TWO,
+		THREE
+	}
 }

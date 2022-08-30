@@ -63,7 +63,7 @@ public final class GenerateOptionsBuilder {
 	private ArbitraryGenerator defaultArbitraryGenerator;
 
 	@SuppressWarnings("rawtypes")
-	private List<MatcherOperator<FixtureCustomizer>> arbitraryCustomizers = new ArrayList<>();
+	private List<MatcherOperator<? extends FixtureCustomizer>> arbitraryCustomizers = new ArrayList<>();
 	private final JavaDefaultArbitraryGeneratorBuilder javaDefaultArbitraryGeneratorBuilder =
 		DefaultArbitraryGenerator.javaBuilder();
 
@@ -336,7 +336,7 @@ public final class GenerateOptionsBuilder {
 
 	@SuppressWarnings("rawtypes")
 	public GenerateOptionsBuilder arbitraryCustomizers(
-		List<MatcherOperator<FixtureCustomizer>> arbitraryCustomizers
+		List<MatcherOperator<? extends FixtureCustomizer>> arbitraryCustomizers
 	) {
 		this.arbitraryCustomizers = arbitraryCustomizers;
 		return this;
@@ -344,9 +344,9 @@ public final class GenerateOptionsBuilder {
 
 	@SuppressWarnings("rawtypes")
 	public GenerateOptionsBuilder insertFirstArbitraryCustomizer(
-		MatcherOperator<FixtureCustomizer> arbitraryCustomizer
+		MatcherOperator<? extends FixtureCustomizer> arbitraryCustomizer
 	) {
-		List<MatcherOperator<FixtureCustomizer>> result =
+		List<MatcherOperator<? extends FixtureCustomizer>> result =
 			insertFirst(this.arbitraryCustomizers, arbitraryCustomizer);
 		return arbitraryCustomizers(result);
 	}

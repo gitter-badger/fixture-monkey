@@ -119,13 +119,15 @@ public final class ManipulateOptionsBuilder {
 	}
 
 	public void sampleRegisteredArbitraryBuilder(LabMonkey labMonkey) {
-		registeredSampledArbitraryBuilders = registeredArbitraryBuilders.stream()
-			.map(operator -> new MatcherOperator<>(
+		for (MatcherOperator<Function<LabMonkey, ? extends ArbitraryBuilder<?>>> operator : registeredArbitraryBuilders) {
+			// 순서?
+			registeredSampledArbitraryBuilders.add(
+				new MatcherOperator<>(
 					operator.getMatcher(),
 					operator.getOperator().apply(labMonkey)
 				)
-			)
-			.collect(Collectors.toList());
+			);
+		}
 	}
 
 	private static <T> T defaultIfNull(@Nullable T obj, Supplier<T> defaultValue) {
