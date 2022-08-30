@@ -214,7 +214,18 @@ public final class JavaxValidationJavaArbitraryResolver implements JavaArbitrary
 		LongArbitrary longArbitrary,
 		ArbitraryGeneratorContext context
 	) {
-		throw new UnsupportedOperationException("Not implement yet.");
+		JavaxValidationIntegerConstraint constraint = this.constraintGenerator.generateIntegerConstraint(context);
+		BigInteger min = constraint.getMin();
+		BigInteger max = constraint.getMax();
+
+		if (min != null) {
+			longArbitrary = longArbitrary.greaterOrEqual(min.longValueExact());
+		}
+		if (max != null) {
+			longArbitrary = longArbitrary.lessOrEqual(max.longValue());
+		}
+
+		return longArbitrary;
 	}
 
 	@Override
@@ -222,7 +233,18 @@ public final class JavaxValidationJavaArbitraryResolver implements JavaArbitrary
 		BigIntegerArbitrary bigIntegerArbitrary,
 		ArbitraryGeneratorContext context
 	) {
-		throw new UnsupportedOperationException("Not implement yet.");
+		JavaxValidationIntegerConstraint constraint = this.constraintGenerator.generateIntegerConstraint(context);
+		BigInteger min = constraint.getMin();
+		BigInteger max = constraint.getMax();
+
+		if (min != null) {
+			bigIntegerArbitrary= bigIntegerArbitrary.greaterOrEqual(min);
+		}
+		if (max != null) {
+			bigIntegerArbitrary = bigIntegerArbitrary.lessOrEqual(max);
+		}
+
+		return bigIntegerArbitrary;
 	}
 
 	@Override
@@ -230,6 +252,16 @@ public final class JavaxValidationJavaArbitraryResolver implements JavaArbitrary
 		BigDecimalArbitrary bigDecimalArbitrary,
 		ArbitraryGeneratorContext context
 	) {
-		throw new UnsupportedOperationException("Not implement yet.");
+		JavaxValidationDecimalConstraint constraint = this.constraintGenerator.generateDecimalConstraint(context);
+		BigDecimal min = constraint.getMin();
+		BigDecimal max = constraint.getMax();
+
+		if (min != null) {
+			bigDecimalArbitrary= bigDecimalArbitrary.greaterOrEqual(min);
+		}
+		if (max != null) {
+			bigDecimalArbitrary = bigDecimalArbitrary.lessOrEqual(max);
+		}
+		return bigDecimalArbitrary;
 	}
 }
