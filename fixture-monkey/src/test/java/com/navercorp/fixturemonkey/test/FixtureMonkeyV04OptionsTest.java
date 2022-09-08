@@ -62,13 +62,14 @@ import com.navercorp.fixturemonkey.api.matcher.MatcherOperator;
 import com.navercorp.fixturemonkey.api.type.TypeReference;
 import com.navercorp.fixturemonkey.api.type.Types;
 import com.navercorp.fixturemonkey.resolver.DecomposableContainerValue;
-import com.navercorp.fixturemonkey.resolver.IdentityNodeResolver;
+import com.navercorp.fixturemonkey.test.FixtureMonkeyV04OptionsAdditionalTestSpecs.ListListValue;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04OptionsAdditionalTestSpecs.Pair;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04OptionsAdditionalTestSpecs.PairArbitraryPropertyGenerator;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04OptionsAdditionalTestSpecs.PairIntrospector;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04OptionsAdditionalTestSpecs.RegisterGroup;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04OptionsAdditionalTestSpecs.SimpleObjectChild;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.ComplexObject;
+import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.ListWithAnnotation;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.SimpleObject;
 
 class FixtureMonkeyV04OptionsTest {
@@ -92,20 +93,6 @@ class FixtureMonkeyV04OptionsTest {
 			.isThrownBy(() -> sut.giveMeBuilder(String.class)
 				.set("nonExistentField", 0)
 				.sample());
-	}
-
-	@Property
-	void alterMonkeyFactory() {
-		LabMonkey sut = LabMonkey.labMonkeyBuilder()
-			.monkeyExpressionFactory((expression) -> () -> IdentityNodeResolver.INSTANCE)
-			.build();
-		String expected = "expected";
-
-		String actual = sut.giveMeBuilder(String.class)
-			.set("test", expected)
-			.sample();
-
-		then(actual).isEqualTo(expected);
 	}
 
 	@Property
@@ -371,7 +358,7 @@ class FixtureMonkeyV04OptionsTest {
 						Class<?> type = Types.getActualType(elementType);
 						return type.isAssignableFrom(String.class);
 					},
-					(context) -> new ArbitraryContainerInfo(5, 5)
+					(context) -> new ArbitraryContainerInfo(5, 5, false)
 				)
 			)
 			.build();
@@ -396,7 +383,7 @@ class FixtureMonkeyV04OptionsTest {
 						Class<?> type = Types.getActualType(elementType);
 						return type.isAssignableFrom(String.class);
 					},
-					(context) -> new ArbitraryContainerInfo(5, 5)
+					(context) -> new ArbitraryContainerInfo(5, 5, false)
 				)
 			)
 			.build();
@@ -422,7 +409,7 @@ class FixtureMonkeyV04OptionsTest {
 	@Property
 	void defaultArbitraryContainerInfo() {
 		LabMonkey sut = LabMonkey.labMonkeyBuilder()
-			.defaultArbitraryContainerInfo(new ArbitraryContainerInfo(3, 3))
+			.defaultArbitraryContainerInfo(new ArbitraryContainerInfo(3, 3, false))
 			.build();
 
 		List<SimpleObject> actual = sut.giveMeOne(ComplexObject.class)
@@ -906,5 +893,71 @@ class FixtureMonkeyV04OptionsTest {
 			.getStr();
 
 		then(actual).isEqualTo(expected);
+	}
+
+	@Property
+	void sizeRegisteredElement() {
+		String expected = "test";
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.register(String.class, fixture -> fixture.giveMeBuilder(String.class).set(expected))
+			.build();
+
+		List<String> actual = sut.giveMeBuilder(ListWithAnnotation.class)
+			.size("values", 5)
+			.sample()
+			.getValues();
+
+		then(actual).allMatch(expected::equals);
+	}
+
+	@Property
+	void sizeRegisteredElementElement() {
+		String expected = "test";
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.register(
+				ListWithAnnotation.class,
+				fixture -> fixture.giveMeBuilder(ListWithAnnotation.class).size("values", 3)
+			)
+			.register(String.class, fixture -> fixture.giveMeBuilder(String.class).set(expected))
+			.build();
+
+		List<ListWithAnnotation> actual = sut.giveMeBuilder(ListListValue.class)
+			.size("values", 5)
+			.sample()
+			.getValues();
+
+		then(actual).allMatch(it -> it.getValues().stream().allMatch(expected::equals));
+	}
+
+	@Property
+	void sizeElement() {
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.register(
+				ListWithAnnotation.class,
+				fixture -> fixture.giveMeBuilder(ListWithAnnotation.class).size("values", 4)
+			)
+			.build();
+
+		List<ListWithAnnotation> actual = sut.giveMeBuilder(ListListValue.class)
+			.size("values", 5)
+			.sample()
+			.getValues();
+
+		actual.forEach(it -> then(it.getValues()).hasSize(4));
+	}
+
+	@Property
+	void sizeRegister() {
+		LabMonkey sut = LabMonkey.labMonkeyBuilder()
+			.register(String.class, fixture -> fixture.giveMeBuilder("test"))
+			.build();
+
+		List<String> actual = sut.giveMeBuilder(new TypeReference<List<String>>() {
+			})
+			.fixed()
+			.size("$", 5)
+			.sample();
+
+		then(actual).allMatch("test"::equals);
 	}
 }

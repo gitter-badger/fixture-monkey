@@ -29,7 +29,7 @@ public final class TupleLikeElementsArbitraryPropertyGenerator implements Arbitr
 	public static final TupleLikeElementsArbitraryPropertyGenerator INSTANCE =
 		new TupleLikeElementsArbitraryPropertyGenerator();
 
-	private static final ArbitraryContainerInfo CONTAINER_INFO = new ArbitraryContainerInfo(1, 1);
+	private static final ArbitraryContainerInfo CONTAINER_INFO = new ArbitraryContainerInfo(1, 1, false);
 	private static final double NULL_INJECT = 0.0d;
 
 	@Override

@@ -18,6 +18,11 @@
 
 package com.navercorp.fixturemonkey.resolver;
 
+import static com.navercorp.fixturemonkey.Constants.HEAD_NAME;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apiguardian.api.API;
@@ -46,9 +51,15 @@ public final class AddMapEntryNodeManipulator implements NodeManipulator {
 		}
 
 		ArbitraryProperty arbitraryProperty = arbitraryNode.getArbitraryProperty();
-		ArbitraryContainerInfo containerInfo = arbitraryProperty
-			.getContainerInfo().withElementMinSize(1).withElementMaxSize(1);
-		ArbitraryNode entryNode = traverser.traverse(arbitraryProperty.getProperty(), containerInfo)
+		Map<String, ArbitraryContainerInfo> arbitraryContainerInfosByExpression = Collections.singletonMap(
+			HEAD_NAME,
+			new ArbitraryContainerInfo(1, 1, true)
+		);
+
+		ArbitraryNode entryNode = traverser.traverse(
+				arbitraryProperty.getProperty(),
+				arbitraryContainerInfosByExpression
+			)
 			.getChildren().get(0);
 
 		arbitraryProperty.getChildProperties().add(entryNode.getProperty());

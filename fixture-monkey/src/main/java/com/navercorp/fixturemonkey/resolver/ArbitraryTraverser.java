@@ -18,18 +18,28 @@
 
 package com.navercorp.fixturemonkey.resolver;
 
+import static com.navercorp.fixturemonkey.Constants.HEAD_NAME;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
 import org.apiguardian.api.API;
 import org.apiguardian.api.API.Status;
 
+import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
+
+import com.navercorp.fixturemonkey.Constants;
 import com.navercorp.fixturemonkey.api.generator.ArbitraryContainerInfo;
+import com.navercorp.fixturemonkey.api.generator.ArbitraryContainerInfoGenerator;
 import com.navercorp.fixturemonkey.api.generator.ArbitraryProperty;
 import com.navercorp.fixturemonkey.api.generator.ArbitraryPropertyGenerator;
 import com.navercorp.fixturemonkey.api.generator.ArbitraryPropertyGeneratorContext;
+import com.navercorp.fixturemonkey.api.matcher.MatcherOperator;
 import com.navercorp.fixturemonkey.api.option.GenerateOptions;
 import com.navercorp.fixturemonkey.api.property.Property;
 
@@ -43,10 +53,12 @@ public final class ArbitraryTraverser {
 
 	public ArbitraryNode traverse(
 		Property property,
-		@Nullable ArbitraryContainerInfo containerInfo
+		Map<String, ArbitraryContainerInfo> arbitraryContainerInfosByExpression
 	) {
 		ArbitraryPropertyGenerator arbitraryPropertyGenerator =
 			this.generateOptions.getArbitraryPropertyGenerator(property);
+
+		ArbitraryContainerInfo containerInfo = arbitraryContainerInfosByExpression.get(HEAD_NAME);
 
 		ArbitraryProperty arbitraryProperty = arbitraryPropertyGenerator.generate(
 			new ArbitraryPropertyGeneratorContext(
@@ -58,10 +70,21 @@ public final class ArbitraryTraverser {
 			)
 		);
 
-		return this.traverse(arbitraryProperty);
+		return this.traverse(
+			arbitraryProperty,
+			arbitraryContainerInfosByExpression,
+			new TraverseContext(
+				new ArrayList<>(),
+				generateOptions
+			)
+		);
 	}
 
-	private ArbitraryNode traverse(ArbitraryProperty arbitraryProperty) {
+	private ArbitraryNode traverse(
+		ArbitraryProperty arbitraryProperty,
+		Map<String, ArbitraryContainerInfo> arbitraryContainerInfosByExpression,
+		TraverseContext traverseContext
+	) {
 		List<ArbitraryNode> children = new ArrayList<>();
 
 		List<Property> childProperties = arbitraryProperty.getChildProperties();
@@ -70,17 +93,27 @@ public final class ArbitraryTraverser {
 			ArbitraryPropertyGenerator arbitraryPropertyGenerator =
 				this.generateOptions.getArbitraryPropertyGenerator(childProperty);
 
+			ArbitraryContainerInfo containerInfo = arbitraryContainerInfosByExpression.entrySet().stream()
+				.filter(it -> traverseContext.isMatch(childProperty, it.getKey()))
+				.map(Entry::getValue)
+				.findFirst()
+				.orElse(null);
+
 			ArbitraryProperty childArbitraryProperty = arbitraryPropertyGenerator.generate(
 				new ArbitraryPropertyGeneratorContext(
 					childProperty,
 					arbitraryProperty.getContainerInfo() != null ? index : null,
 					arbitraryProperty,
-					null,
+					containerInfo,
 					this.generateOptions
 				)
 			);
 
-			ArbitraryNode childNode = this.traverse(childArbitraryProperty);
+			ArbitraryNode childNode = this.traverse(
+				childArbitraryProperty,
+				arbitraryContainerInfosByExpression,
+				traverseContext.withNewArbitraryProperties(childArbitraryProperty)
+			);
 			children.add(childNode);
 		}
 

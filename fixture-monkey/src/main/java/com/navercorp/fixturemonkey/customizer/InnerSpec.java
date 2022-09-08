@@ -47,7 +47,6 @@ import com.navercorp.fixturemonkey.resolver.NodeNullityManipulator;
 import com.navercorp.fixturemonkey.resolver.NodeResolver;
 import com.navercorp.fixturemonkey.resolver.NodeSetDecomposedValueManipulator;
 import com.navercorp.fixturemonkey.resolver.NodeSetLazyManipulator;
-import com.navercorp.fixturemonkey.resolver.NodeSizeManipulator;
 import com.navercorp.fixturemonkey.resolver.PropertyNameNodeResolver;
 
 @API(since = "0.4.0", status = Status.EXPERIMENTAL)
@@ -80,9 +79,10 @@ public final class InnerSpec {
 		if (min > max) {
 			throw new IllegalArgumentException("should be min > max, min : " + min + " max : " + max);
 		}
-		arbitraryManipulators.add(
-			new ArbitraryManipulator(this.treePathResolver, new NodeSizeManipulator(traverser, min, max))
-		);
+		// TODO:
+		// arbitraryManipulators.add(
+		// 	new ArbitraryManipulator(this.treePathResolver, new NodeSizeManipulator(traverser, min, max))
+		// );
 	}
 
 	public void key(Object key) {

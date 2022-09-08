@@ -1293,4 +1293,17 @@ class FixtureMonkeyV04Test {
 
 		then(actual).isNotNull();
 	}
+
+	@Property
+	void test() {
+		// when
+		List<String> actual = SUT.giveMeBuilder(ComplexObject.class)
+			.size("strList", 0)
+			.fixed()
+			.size("strList", 1)
+			.sample()
+			.getStrList();
+
+		then(actual).hasSize(1);
+	}
 }

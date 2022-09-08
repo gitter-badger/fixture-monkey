@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -33,14 +32,10 @@ import com.navercorp.fixturemonkey.ArbitraryBuilder;
 import com.navercorp.fixturemonkey.LabMonkey;
 import com.navercorp.fixturemonkey.api.matcher.MatcherOperator;
 import com.navercorp.fixturemonkey.api.property.PropertyNameResolver;
-import com.navercorp.fixturemonkey.arbitrary.ArbitraryExpressionFactory;
-import com.navercorp.fixturemonkey.expression.MonkeyExpressionFactory;
 
 @SuppressWarnings("UnusedReturnValue")
 @API(since = "0.4.0", status = Status.EXPERIMENTAL)
 public final class ManipulateOptionsBuilder {
-	private MonkeyExpressionFactory defaultMonkeyExpressionFactory;
-
 	private boolean expressionStrictMode = false;
 
 	private List<MatcherOperator<Function<LabMonkey, ? extends ArbitraryBuilder<?>>>>
@@ -59,11 +54,6 @@ public final class ManipulateOptionsBuilder {
 
 	public ManipulateOptionsBuilder expressionStrictMode(boolean expressionStrictMode) {
 		this.expressionStrictMode = expressionStrictMode;
-		return this;
-	}
-
-	public ManipulateOptionsBuilder monkeyExpressionFactory(MonkeyExpressionFactory monkeyExpressionFactory) {
-		this.defaultMonkeyExpressionFactory = monkeyExpressionFactory;
 		return this;
 	}
 
@@ -93,39 +83,33 @@ public final class ManipulateOptionsBuilder {
 		return this;
 	}
 
+	public boolean isExpressionStrictMode() {
+		return expressionStrictMode;
+	}
+
 	public ManipulateOptions build() {
-		defaultMonkeyExpressionFactory = defaultIfNull(
-			this.defaultMonkeyExpressionFactory,
-			ArbitraryExpressionFactory::new
-		);
-
-		if (expressionStrictMode) {
-			MonkeyExpressionFactory currentMonkeyExpressionFactory = defaultMonkeyExpressionFactory;
-			defaultMonkeyExpressionFactory = expression ->
-				() -> new ApplyStrictModeResolver(currentMonkeyExpressionFactory.from(expression).toNodeResolver());
-		}
-
 		DecomposedContainerValueFactory decomposedContainerValueFactory = new DefaultDecomposedContainerValueFactory(
 			additionalDecomposedContainerValueFactory
 		);
 
 		return new ManipulateOptions(
-			defaultMonkeyExpressionFactory,
 			registeredSampledArbitraryBuilders,
 			decomposedContainerValueFactory,
 			propertyNameResolvers,
-			defaultPropertyNameResolver
+			defaultPropertyNameResolver,
+			expressionStrictMode
 		);
 	}
 
 	public void sampleRegisteredArbitraryBuilder(LabMonkey labMonkey) {
-		registeredSampledArbitraryBuilders = registeredArbitraryBuilders.stream()
-			.map(operator -> new MatcherOperator<>(
+		for (MatcherOperator<Function<LabMonkey, ? extends ArbitraryBuilder<?>>> operator : registeredArbitraryBuilders) {
+			registeredSampledArbitraryBuilders.add(
+				new MatcherOperator<>(
 					operator.getMatcher(),
 					operator.getOperator().apply(labMonkey)
 				)
-			)
-			.collect(Collectors.toList());
+			);
+		}
 	}
 
 	private static <T> T defaultIfNull(@Nullable T obj, Supplier<T> defaultValue) {

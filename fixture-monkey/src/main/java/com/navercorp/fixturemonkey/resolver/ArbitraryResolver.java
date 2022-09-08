@@ -32,6 +32,7 @@ import net.jqwik.api.Arbitrary;
 
 import com.navercorp.fixturemonkey.ArbitraryBuilder;
 import com.navercorp.fixturemonkey.api.customizer.FixtureCustomizer;
+import com.navercorp.fixturemonkey.api.generator.ArbitraryContainerInfo;
 import com.navercorp.fixturemonkey.api.lazy.LazyArbitrary;
 import com.navercorp.fixturemonkey.api.matcher.MatcherOperator;
 import com.navercorp.fixturemonkey.api.option.GenerateOptions;
@@ -61,10 +62,11 @@ public final class ArbitraryResolver {
 	public Arbitrary<?> resolve(
 		RootProperty rootProperty,
 		List<ArbitraryManipulator> manipulators,
-		List<MatcherOperator<? extends FixtureCustomizer>> customizers
+		List<MatcherOperator<? extends FixtureCustomizer>> customizers,
+		Map<String, ArbitraryContainerInfo> arbitraryContainerInfosByExpression
 	) {
 		ArbitraryTree arbitraryTree = new ArbitraryTree(
-			this.traverser.traverse(rootProperty, null),
+			this.traverser.traverse(rootProperty, arbitraryContainerInfosByExpression),
 			generateOptions,
 			customizers
 		);

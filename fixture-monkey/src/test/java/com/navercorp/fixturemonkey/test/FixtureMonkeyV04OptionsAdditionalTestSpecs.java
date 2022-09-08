@@ -27,6 +27,9 @@ import net.jqwik.api.Arbitrary;
 import net.jqwik.api.Builders;
 import net.jqwik.api.Builders.BuilderCombinator;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import com.navercorp.fixturemonkey.ArbitraryBuilder;
 import com.navercorp.fixturemonkey.LabMonkey;
 import com.navercorp.fixturemonkey.api.generator.ArbitraryContainerInfo;
@@ -41,6 +44,7 @@ import com.navercorp.fixturemonkey.api.matcher.Matcher;
 import com.navercorp.fixturemonkey.api.property.ElementProperty;
 import com.navercorp.fixturemonkey.api.property.Property;
 import com.navercorp.fixturemonkey.api.type.Types;
+import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.ListWithAnnotation;
 import com.navercorp.fixturemonkey.test.FixtureMonkeyV04TestSpecs.SimpleObject;
 
 class FixtureMonkeyV04OptionsAdditionalTestSpecs {
@@ -51,6 +55,14 @@ class FixtureMonkeyV04OptionsAdditionalTestSpecs {
 		public ArbitraryBuilder<String> string(LabMonkey labMonkey) {
 			return labMonkey.giveMeBuilder("test");
 		}
+	}
+
+
+	@Getter
+	@Setter
+	public static class ListListValue {
+		private List<ListWithAnnotation> values;
+
 	}
 
 	public static class Pair<S, T> {

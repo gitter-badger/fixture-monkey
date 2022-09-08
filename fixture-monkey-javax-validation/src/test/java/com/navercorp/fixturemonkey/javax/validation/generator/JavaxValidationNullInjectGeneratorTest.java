@@ -213,7 +213,7 @@ class JavaxValidationNullInjectGeneratorTest {
 			null,
 			GenerateOptions.DEFAULT_GENERATE_OPTIONS
 		);
-		ArbitraryContainerInfo containerInfo = new ArbitraryContainerInfo(0, 3);
+		ArbitraryContainerInfo containerInfo = new ArbitraryContainerInfo(0, 3, false);
 
 		// when
 		double actual = sut.generate(context, containerInfo);

@@ -55,7 +55,6 @@ import com.navercorp.fixturemonkey.api.option.GenerateOptionsBuilder;
 import com.navercorp.fixturemonkey.api.plugin.Plugin;
 import com.navercorp.fixturemonkey.api.property.PropertyNameResolver;
 import com.navercorp.fixturemonkey.api.type.Types;
-import com.navercorp.fixturemonkey.expression.MonkeyExpressionFactory;
 import com.navercorp.fixturemonkey.resolver.ArbitraryTraverser;
 import com.navercorp.fixturemonkey.resolver.DecomposableContainerValue;
 import com.navercorp.fixturemonkey.resolver.DecomposedContainerValueFactory;
@@ -85,11 +84,6 @@ public class LabMonkeyBuilder {
 
 	public LabMonkeyBuilder manipulatorOptimizer(ManipulatorOptimizer manipulatorOptimizer) {
 		this.manipulatorOptimizer = manipulatorOptimizer;
-		return this;
-	}
-
-	public LabMonkeyBuilder monkeyExpressionFactory(MonkeyExpressionFactory monkeyExpressionFactory) {
-		manipulateOptionsBuilder.monkeyExpressionFactory(monkeyExpressionFactory);
 		return this;
 	}
 
@@ -368,9 +362,9 @@ public class LabMonkeyBuilder {
 					};
 					this.register(actualType, registerArbitraryBuilder);
 				} catch (InvocationTargetException
-						| InstantiationException
-						| IllegalAccessException
-						| NoSuchMethodException e) {
+						 | InstantiationException
+						 | IllegalAccessException
+						 | NoSuchMethodException e) {
 					// ignored
 				}
 			}
