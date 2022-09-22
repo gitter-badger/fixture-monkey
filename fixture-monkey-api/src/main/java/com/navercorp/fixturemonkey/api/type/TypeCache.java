@@ -41,6 +41,14 @@ public final class TypeCache {
 		return PROPERTY_DESCRIPTOR_ANNOTATED_TYPE_MAP.computeIfAbsent(
 			propertyDescriptor,
 			it -> it.getReadMethod().getAnnotatedReturnType()
+			// (it) -> {
+			// 	if (it.getReadMethod() != null) {
+			// 		return it.getReadMethod().getAnnotatedReturnType();
+			// 	} else if (it.getWriteMethod() != null) {
+			// 		return it.getWriteMethod().getAnnotatedReturnType();
+			// 	}
+			// 	throw new IllegalArgumentException("PropertyDescriptor does not have getter or setter");
+			// }
 		);
 	}
 }

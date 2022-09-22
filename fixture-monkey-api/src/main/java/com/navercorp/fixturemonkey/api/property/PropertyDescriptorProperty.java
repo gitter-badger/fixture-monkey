@@ -25,6 +25,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,13 @@ public final class PropertyDescriptorProperty implements Property {
 	public PropertyDescriptorProperty(AnnotatedType annotatedType, PropertyDescriptor propertyDescriptor) {
 		this.annotatedType = annotatedType;
 		this.propertyDescriptor = propertyDescriptor;
+		// if (propertyDescriptor.getReadMethod() != null) {
+		// 	this.annotations = Arrays.asList(propertyDescriptor.getReadMethod().getAnnotations());
+		// } else if (propertyDescriptor.getWriteMethod() != null){
+		// 	this.annotations = Arrays.asList(propertyDescriptor.getWriteMethod().getAnnotations());
+		// } else {
+		// 	this.annotations = new ArrayList<>();
+		// }
 		this.annotations = Arrays.asList(propertyDescriptor.getReadMethod().getAnnotations());
 		this.annotationsMap = this.annotations.stream()
 			.collect(toMap(Annotation::annotationType, Function.identity(), (a1, a2) -> a1));

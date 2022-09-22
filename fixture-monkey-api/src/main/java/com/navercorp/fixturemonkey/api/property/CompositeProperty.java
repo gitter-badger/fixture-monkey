@@ -51,12 +51,14 @@ public final class CompositeProperty implements Property {
 
 	@Override
 	public Type getType() {
-		return this.primaryProperty.getType();
+		return this.secondaryProperty.getType();
+		// return this.primaryProperty.getType();
 	}
 
 	@Override
 	public AnnotatedType getAnnotatedType() {
-		return this.primaryProperty.getAnnotatedType();
+		return this.secondaryProperty.getAnnotatedType();
+		// return this.primaryProperty.getAnnotatedType();
 	}
 
 	@Override
