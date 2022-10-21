@@ -17,7 +17,7 @@ testImplementation("com.navercorp.fixturemonkey:fixture-monkey-javax-validation:
 ```
 
 ## 2. 플러그인 추가
-`LabMonkeyBuilder` 의 옵션 중 `plugin`을 추가합니다.
+`LabMonkeyBuilder` 의 옵션 `plugin`을 추가합니다.
 
 ```java
 LabMonkey labMonkey = LabMonkey.labMonkeyBuilder()

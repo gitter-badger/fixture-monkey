@@ -7,7 +7,7 @@ weight: 2
 ### JacksonArbitraryIntrospector
 #### 0. 필요조건
 
-객체가 Jackson에 의해 serialize/deserialize가 가능해야 합니다.
+객체가 Jackson으로 serialize/deserialize가 가능해야 합니다.
 
 #### 1. 의존성 추가
 
@@ -18,7 +18,7 @@ testImplementation("com.navercorp.fixturemonkey:fixture-monkey-jackson:0.4.1")
 ```xml
 <dependency>
   <groupId>com.navercorp.fixturemonkey</groupId>
-  <artifactId>fixture-monkey-starter</artifactId>
+  <artifactId>fixture-monkey-jackson</artifactId>
   <version>0.4.1</version>
   <scope>test</scope>
 </dependency>
@@ -31,7 +31,7 @@ testImplementation("com.navercorp.fixturemonkey:fixture-monkey-jackson:0.4.1")
 ##### ObjectMapper를 정의한 경우
 ```java
 LabMonkey labMonkey = LabMonkey.labMonkeyBuilder()
-     .plugin(new JacksonPlugin(objectMapper))
+    .plugin(new JacksonPlugin(objectMapper))
     .objectIntrospector(new JacksonArbitraryIntrospector(objectMapper))
     .build();
 ```
@@ -39,7 +39,7 @@ LabMonkey labMonkey = LabMonkey.labMonkeyBuilder()
 ##### ObjectMapper를 정의하지 않은 경우
 ```java
 LabMonkey labMonkey = LabMonkey.labMonkeyBuilder()
-     .plugin(new JacksonPlugin())
+    .plugin(new JacksonPlugin())
     .objectIntrospector(JacksonArbitraryIntrospector.INSTANCE)
     .build();
 ```

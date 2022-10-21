@@ -13,7 +13,7 @@ testImplementation("com.navercorp.fixturemonkey:fixture-monkey-jackson:0.4.1")
 ```xml
 <dependency>
   <groupId>com.navercorp.fixturemonkey</groupId>
-  <artifactId>fixture-monkey-starter</artifactId>
+  <artifactId>fixture-monkey-jackson</artifactId>
   <version>0.4.1</version>
   <scope>test</scope>
 </dependency>
