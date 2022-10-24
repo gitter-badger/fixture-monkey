@@ -1,6 +1,6 @@
 ---
 title: "객체 값 설정"
-weight: 8
+weight: 6
 ---
 
 {{< alert color="primary" title="Tip">}}

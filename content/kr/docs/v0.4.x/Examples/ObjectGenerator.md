@@ -1,6 +1,6 @@
 ---
 title: "객체 생성 방식 변경"
-weight: 6
+weight: 4
 ---
 ## 1. 객체 생성 방식 선택
 ### BeanArbitraryIntrospector

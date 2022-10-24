@@ -1,6 +1,6 @@
 ---
 title: "컨테이너 사이즈 변경"
-weight: 10
+weight: 7
 ---
 
 {{< alert color="secondary" title="Background">}}

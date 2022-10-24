@@ -1,6 +1,6 @@
 ---
-title: "객체 기본 연산 정의"
-weight: 11
+title: "기본 객체 빌더 정의"
+weight: 8
 ---
 
 {{< alert color="primary" title="Abstract">}}

@@ -1,6 +1,6 @@
 ---
 title: "필드 생성 제외"
-weight: 12
+weight: 10
 ---
 
 ## 1. FixtureCustomizer 인터페이스 구현체 정의

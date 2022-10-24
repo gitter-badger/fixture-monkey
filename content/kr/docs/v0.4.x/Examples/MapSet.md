@@ -1,6 +1,6 @@
 ---
 title: "맵 변경"
-weight: 9
+weight: 6
 ---
 
 {{< alert color="primary" title="Tip">}}

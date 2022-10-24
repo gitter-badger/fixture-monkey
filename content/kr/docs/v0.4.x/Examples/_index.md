@@ -1,5 +1,4 @@
 ---
-title: "예제"
-linkTitle: "예제"
+title: "주제"
 weight: 2
 ---
